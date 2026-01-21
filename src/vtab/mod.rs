@@ -1344,13 +1344,8 @@ where
     match (*vt).integrity(schema_str, table_str, flags) {
         Ok(None) => ffi::SQLITE_OK,
         Ok(Some(err_msg)) => {
-            // Allocate error message for SQLite to free
-            let c_err = match CString::new(err_msg) {
-                Ok(s) => s,
-                Err(_) => return ffi::SQLITE_ERROR,
-            };
-            let fmt = CString::new("%s").unwrap();
-            *pz_err = ffi::sqlite3_mprintf(fmt.as_ptr(), c_err.as_ptr());
+            // Allocate error message using sqlite3_malloc64 (compatible with loadable_extension)
+            *pz_err = alloc(&err_msg);
             ffi::SQLITE_ERROR
         }
         Err(_) => ffi::SQLITE_ERROR,
