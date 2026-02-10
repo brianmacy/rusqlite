@@ -6894,7 +6894,11 @@ pub unsafe fn rusqlite_extension_init2(
     }
     if let Some(fun) = (*p_api).libversion_number {
         let version = fun();
-        if SQLITE_VERSION_NUMBER > version {
+        // Allow loading into any SQLite >= 3.44.0 (minimum for xIntegrity support).
+        // When built with "bundled", the compile-time version may be newer than the
+        // host runtime; this is safe as long as the runtime has the APIs we need.
+        const MIN_REQUIRED_VERSION: i32 = 3044000;
+        if version < MIN_REQUIRED_VERSION {
             return Err(crate::InitError::VersionMismatch {
                 compile_time: SQLITE_VERSION_NUMBER,
                 runtime: version,
