@@ -6251,15 +6251,9 @@ pub unsafe fn rusqlite_extension_init2(
         __SQLITE3_MALLOC
             .store(fun as usize as *mut (), ::core::sync::atomic::Ordering::Release);
     }
-    if let Some(fun) = (*p_api).libversion_number {
-        let version = fun();
-        if SQLITE_VERSION_NUMBER > version {
-            return Err(crate::InitError::VersionMismatch {
-                compile_time: SQLITE_VERSION_NUMBER,
-                runtime: version,
-            });
-        }
-    } else {
+    // No version check — the extension itself is responsible for
+    // verifying the host SQLite has the APIs it needs.
+    if (*p_api).libversion_number.is_none() {
         return Err(crate::InitError::NullFunctionPointer);
     }
     if let Some(fun) = (*p_api).aggregate_context {
