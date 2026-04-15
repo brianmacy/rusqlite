@@ -504,7 +504,7 @@ mod bindings {
 
     use std::path::Path;
 
-    static PREBUILT_BINDGENS: &[&str] = &["bindgen_3.34.1"];
+    static PREBUILT_BINDGENS: &[&str] = &["bindgen_3.34.1", "bindgen_3.52.0"];
 
     pub fn write_to_out_dir(_header: HeaderLocation, out_path: &Path) {
         let name = PREBUILT_BINDGENS[PREBUILT_BINDGENS.len() - 1];
