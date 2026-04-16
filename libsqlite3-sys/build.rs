@@ -504,10 +504,16 @@ mod bindings {
 
     use std::path::Path;
 
-    static PREBUILT_BINDGENS: &[&str] = &["bindgen_3.34.1", "bindgen_3.52.0"];
-
     pub fn write_to_out_dir(_header: HeaderLocation, out_path: &Path) {
-        let name = PREBUILT_BINDGENS[PREBUILT_BINDGENS.len() - 1];
+        // The 3.52.0 non-ext bindings use AtomicPtr patterns that require
+        // initialization via rusqlite_extension_init2. Use 3.52.0_ext for
+        // loadable_extension builds, fall back to 3.34.1 for non-ext builds
+        // which has proper extern "C" declarations.
+        let name = if cfg!(feature = "loadable_extension") {
+            "bindgen_3.52.0"
+        } else {
+            "bindgen_3.34.1"
+        };
         super::copy_bindings("bindgen-bindings", name, out_path);
     }
 }
