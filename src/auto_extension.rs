@@ -48,12 +48,18 @@ pub unsafe fn init_auto_extension(
 /// * Results are undefined if the given db is closed by an auto-extension.
 /// * The list of auto-extensions should not be manipulated from an auto-extension.
 pub unsafe fn register_auto_extension(ax: RawAutoExtension) -> Result<()> {
-    check(ffi::sqlite3_auto_extension(Some(ax)))
+    // SQLite's C API declares sqlite3_auto_extension with void(*)(void) callback,
+    // but internally casts to the entry point signature. Transmute to match bindgen.
+    let ax_fn: unsafe extern "C" fn() = core::mem::transmute(ax);
+    check(ffi::sqlite3_auto_extension(Some(ax_fn)))
 }
 
 /// Unregister the initialization routine
 pub fn cancel_auto_extension(ax: RawAutoExtension) -> bool {
-    unsafe { ffi::sqlite3_cancel_auto_extension(Some(ax)) == 1 }
+    unsafe {
+        let ax_fn: unsafe extern "C" fn() = core::mem::transmute(ax);
+        ffi::sqlite3_cancel_auto_extension(Some(ax_fn)) == 1
+    }
 }
 
 /// Disable all automatic extensions previously registered
